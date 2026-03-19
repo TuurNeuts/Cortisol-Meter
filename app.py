@@ -628,42 +628,7 @@ with col_cam:
                         unsafe_allow_html=True
                     )
 
-            if level in ("High", "Moderate"):
-                title_emoji = "⚠️" if level == "High" else "💡"
-                title_text  = "High Stress — Let's Help" if level == "High" else "Elevated Stress — Time to Unwind"
-                snap_tips_col, snap_breath_col = st.columns([3, 2])
 
-                with snap_tips_col:
-                    st.markdown(f'<div class="section-title">{title_emoji} {title_text}</div>',
-                                unsafe_allow_html=True)
-                    snap_tips = get_tips(3)
-                    tips_html = ""
-                    for icon, ttitle, tdesc in snap_tips:
-                        tips_html += (
-                            f'<div class="tip-card">'
-                            f'<div class="tip-icon">{icon}</div>'
-                            f'<div><div class="tip-title">{ttitle}</div>'
-                            f'<div class="tip-desc">{tdesc}</div></div></div>'
-                        )
-                    st.markdown(tips_html, unsafe_allow_html=True)
-
-                if level == "High":
-                    with snap_breath_col:
-                        st.markdown('<div class="section-title">🫁 Box Breathing</div>',
-                                    unsafe_allow_html=True)
-                        st.markdown('<div class="card">', unsafe_allow_html=True)
-                        components.html(breathing_animation_html(phase_seconds=4), height=230)
-                        st.markdown('</div>', unsafe_allow_html=True)
-
-            elif level == "Low":
-                st.markdown("""
-<div class="card" style="margin-top:12px;">
-  <div style="font-size:0.85rem;font-weight:600;color:#4ade80;margin-bottom:8px;">✅ Low Stress — Snapshot</div>
-  <div style="font-size:0.82rem;color:#8eb8d8;line-height:1.6;">
-    You appeared calm and relaxed at the time of this snapshot. Keep it up 🌿
-  </div>
-</div>
-""", unsafe_allow_html=True)
         else:
             st.info("No face detected in snapshot.")
 
