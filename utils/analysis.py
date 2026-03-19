@@ -166,18 +166,18 @@ def analyse_face(landmarks, image_w, image_h):
 
     # Weighted composite (weights tuned empirically)
     raw_score = (
-        ear_stress    * 30.0 +   # eye deviation
-        brow_tension  * 40.0 +   # furrowed brows — strongest signal
-        mouth_open    * 20.0 +   # mouth tension
-        head_modifier * 10.0     # head asymmetry
+        ear_stress    * 45.0 +   # eye deviation
+        brow_tension  * 65.0 +   # furrowed brows — strongest signal
+        mouth_open    * 30.0 +   # mouth tension
+        head_modifier * 15.0     # head asymmetry
     )
 
     cortisol_score = float(np.clip(raw_score, 0.0, 100.0))
 
     # ── Level classification ─────────────────────────────────────────────────
-    if cortisol_score < 35:
+    if cortisol_score < 30:
         level = "Low"
-    elif cortisol_score < 65:
+    elif cortisol_score < 55:
         level = "Moderate"
     else:
         level = "High"
