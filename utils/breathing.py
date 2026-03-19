@@ -21,14 +21,16 @@ def breathing_animation_html(phase_seconds: int = 4) -> str:
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 20px 0;
+    padding: 16px 8px;
     font-family: 'Segoe UI', sans-serif;
+    width: 100%;
+    box-sizing: border-box;
 ">
-  <p style="color:#a0b8d8; font-size:0.95rem; margin-bottom:16px; letter-spacing:0.5px;">
-    Follow the circle — breathe naturally
+  <p style="color:#a0b8d8; font-size:0.9rem; margin-bottom:14px; letter-spacing:0.5px; text-align:center;">
+    Follow the circle &mdash; breathe naturally
   </p>
 
-  <div style="position:relative; width:160px; height:160px; margin-bottom:20px;">
+  <div style="position:relative; width:min(140px, 55vw); height:min(140px, 55vw); margin-bottom:16px; flex-shrink:0;">
     <!-- Outer pulsing ring -->
     <div id="outerRing" style="
       position:absolute; inset:0;
@@ -39,7 +41,7 @@ def breathing_animation_html(phase_seconds: int = 4) -> str:
     "></div>
     <!-- Inner circle -->
     <div id="innerCircle" style="
-      position:absolute; inset:20px;
+      position:absolute; inset:18px;
       border-radius:50%;
       background: radial-gradient(circle at 40% 35%, rgba(130,200,255,0.9), rgba(60,120,220,0.7));
       box-shadow: 0 0 30px rgba(80,160,255,0.5), 0 0 60px rgba(80,160,255,0.2);
@@ -52,7 +54,7 @@ def breathing_animation_html(phase_seconds: int = 4) -> str:
       z-index:10;
     ">
       <span id="phaseLabel" style="
-        color:#e8f4ff; font-size:0.8rem; font-weight:600;
+        color:#e8f4ff; font-size:0.78rem; font-weight:600;
         letter-spacing:1px; text-transform:uppercase;
         text-shadow: 0 1px 4px rgba(0,0,0,0.5);
       ">Inhale</span>
@@ -60,7 +62,7 @@ def breathing_animation_html(phase_seconds: int = 4) -> str:
   </div>
 
   <!-- Timer bar -->
-  <div style="width:160px; height:4px; background:rgba(255,255,255,0.1); border-radius:2px; overflow:hidden;">
+  <div style="width:min(160px, 70%); height:4px; background:rgba(255,255,255,0.1); border-radius:2px; overflow:hidden;">
     <div id="timerBar" style="
       height:100%; width:0%;
       background: linear-gradient(90deg, #5ab4ff, #a0d8ff);

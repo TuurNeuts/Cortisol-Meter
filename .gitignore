@@ -1,0 +1,8 @@
+.venv/
+__pycache__/
+.idea/
+*.pyc
+.DS_Store
+
+# Ignore downloaded MediaPipe model
+face_landmarker.task

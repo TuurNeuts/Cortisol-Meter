@@ -49,4 +49,17 @@ cortisol meter/
 | Head asymmetry | Nose tip vs eye midpoint | Minor modifier |
 
 These four signals are weighted and combined into a 0–100 **Cortisol Score**, then classified as **Low / Moderate / High**.
-# Cortisol-Meter
+
+## Cloud Deployment
+
+This app uses `streamlit-webrtc` so it can be deployed to remote servers (where `cv2.VideoCapture` would fail). 
+
+**To deploy for free on Streamlit Cloud:**
+1. Push this repository to GitHub.
+2. Go to [share.streamlit.io](https://share.streamlit.io) and sign in.
+3. Click **New App**, point it to your repository, branch, and `app.py`.
+4. Click **Deploy**.
+5. Streamlit Cloud will automatically install the system dependencies from `packages.txt` and python packages from `requirements.txt`.
+6. When opening the app URL, the browser will ask for Camera Permissions.
+
+*(Note: The `face_landmarker.task` model file is excluded from Git to save space; the app will automatically download it on the first launch).*
