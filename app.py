@@ -484,23 +484,6 @@ with col_panel:
         components.html(breathing_animation_html(phase_seconds=4), height=240)
         st.markdown('</div>', unsafe_allow_html=True)
 
-        st.markdown('<div class="section-title">💡 Stress-Reduction Tips</div>', unsafe_allow_html=True)
-        
-        if st.button("✨ Get Personalised AI Tips", key="refresh_high"):
-            with st.spinner("🤖 AI is reading your facial tension..."):
-                st.session_state.tips = get_ai_tips(analysis, 4)
-
-        tips = st.session_state.tips
-        tips_html = ""
-        for icon, title, desc in tips:
-            tips_html += (
-                f'<div class="tip-card">'
-                f'<div class="tip-icon">{icon}</div>'
-                f'<div><div class="tip-title">{title}</div>'
-                f'<div class="tip-desc">{desc}</div></div></div>'
-            )
-        st.markdown(tips_html, unsafe_allow_html=True)
-
     elif analysis and analysis["cortisol_level"] == "Moderate":
         st.markdown("<br>", unsafe_allow_html=True)
         st.markdown('<div class="section-title">💡 Elevated Stress — Time to Unwind</div>',
@@ -514,21 +497,6 @@ with col_panel:
         components.html(breathing_animation_html(phase_seconds=4), height=240)
         st.markdown('</div>', unsafe_allow_html=True)
 
-        if st.button("✨ Get Personalised AI Tips", key="refresh_moderate"):
-            with st.spinner("🤖 AI is reading your facial tension..."):
-                st.session_state.tips = get_ai_tips(analysis, 4)
-
-        tips = st.session_state.tips
-        tips_html = ""
-        for icon, title, desc in tips:
-            tips_html += (
-                f'<div class="tip-card">'
-                f'<div class="tip-icon">{icon}</div>'
-                f'<div><div class="tip-title">{title}</div>'
-                f'<div class="tip-desc">{desc}</div></div></div>'
-            )
-        st.markdown(tips_html, unsafe_allow_html=True)
-
     elif analysis and analysis["cortisol_level"] == "Low":
         st.markdown("<br>", unsafe_allow_html=True)
         st.markdown("""
@@ -540,6 +508,24 @@ with col_panel:
   </div>
 </div>
 """, unsafe_allow_html=True)
+
+    # --- UNIVERSAL TIPS SECTION ---
+    if analysis:
+        st.markdown('<br><div class="section-title">💡 Stress-Reduction Tips</div>', unsafe_allow_html=True)
+        
+        if st.button("✨ Get Personalised AI Tips", key="get_ai_tips_univ"):
+            with st.spinner("🤖 AI is reading your facial tension..."):
+                st.session_state.tips = get_ai_tips(analysis, 4)
+
+        tips_html = ""
+        for icon, title, desc in st.session_state.tips:
+            tips_html += (
+                f'<div class="tip-card">'
+                f'<div class="tip-icon">{icon}</div>'
+                f'<div><div class="tip-title">{title}</div>'
+                f'<div class="tip-desc">{desc}</div></div></div>'
+            )
+        st.markdown(tips_html, unsafe_allow_html=True)
 
     # ── Disclaimer ────────────────────────────────────────────────────────────
     st.markdown("""
