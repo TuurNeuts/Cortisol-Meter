@@ -15,23 +15,6 @@ import random
 from io import BytesIO
 from pathlib import Path
 
-# --- Monkey-patch aioice to prevent event loop crash on Python 3.11+ ---
-try:
-    import aioice.ice
-    if hasattr(aioice.ice.Connection, "send_stun"):
-        _original_send_stun = aioice.ice.Connection.send_stun
-
-        def _safe_send_stun(self, message, addr):
-            try:
-                _original_send_stun(self, message, addr)
-            except Exception:
-                pass
-
-        aioice.ice.Connection.send_stun = _safe_send_stun
-except Exception:
-    pass
-# -----------------------------------------------------------------------
-
 import urllib.request
 import cv2
 import mediapipe as mp
@@ -146,7 +129,7 @@ video {
     letter-spacing: 1px;
     text-transform: uppercase;
     white-space: nowrap;
-}stre
+}
 .badge-low      { background: rgba(60,200,120,0.2); color:#4ade80; border:1px solid rgba(60,200,120,0.4); }
 .badge-moderate { background: rgba(250,190,50,0.2); color:#fbbf24; border:1px solid rgba(250,190,50,0.4); }
 .badge-high     { background: rgba(255,80,80,0.2);  color:#f87171; border:1px solid rgba(255,80,80,0.4); }
@@ -572,24 +555,7 @@ with col_cam:
         media_stream_constraints={"video": True, "audio": False},
         async_processing=True,
         rtc_configuration={
-            "iceServers": [
-                {"urls": ["stun:stun.l.google.com:19302"]},
-                {"urls": ["stun:stun1.l.google.com:19302"]},
-                {"urls": ["stun:stun2.l.google.com:19302"]},
-                {"urls": ["stun:stun.stunprotocol.org:3478"]},
-                {"urls": ["stun:stun.qq.com:3478"]},
-                {"urls": ["stun:stun.cloudflare.com:3478"]},
-                {"urls": ["stun:stun.miwifi.com:3478"]},
-                {
-                    "urls": [
-                        "turn:openrelay.metered.ca:80",
-                        "turn:openrelay.metered.ca:443",
-                        "turn:openrelay.metered.ca:443?transport=tcp",
-                    ],
-                    "username": "openrelayproject",
-                    "credential": "openrelayproject",
-                },
-            ]
+            "iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]
         },
     )
 
