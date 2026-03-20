@@ -9,10 +9,15 @@ def get_ai_tips(analysis: dict, n: int = 4):
     based on the exact facial analysis features.
     Falls back to normal static tips if no API key is set.
     """
-    api_key = os.environ.get("GEMINI_API_KEY", st.secrets.get("GEMINI_API_KEY"))
+    try:
+        api_key = os.environ.get("GEMINI_API_KEY")
+        if not api_key:
+            api_key = st.secrets.get("GEMINI_API_KEY")
+    except Exception:
+        api_key = None
     
     if not api_key:
-        return get_fallback_tips(n)
+        return [("🔑", "API Key Missing", "Please add GEMINI_API_KEY to your Streamlit Secrets.")] + get_fallback_tips(n - 1)
 
     client = genai.Client(api_key=api_key)
     
@@ -45,7 +50,7 @@ def get_ai_tips(analysis: dict, n: int = 4):
         text = response.text.strip()
         
         tips = []
-        for line in text.split('\\n'):
+        for line in text.splitlines():
             line = line.strip()
             if not line:
                 continue
@@ -60,4 +65,7 @@ def get_ai_tips(analysis: dict, n: int = 4):
         return tips[:n]
     except Exception as e:
         print(f"Failed to generate AI tips: {e}")
-        return get_fallback_tips(n)
+        error_msg = str(e)
+        if len(error_msg) > 60:
+            error_msg = error_msg[:57] + "..."
+        return [("⚠️", "AI Error", f"Failed: {error_msg}")] + get_fallback_tips(n - 1)
