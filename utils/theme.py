@@ -204,7 +204,7 @@ def get_gauge_html(score: float, level: str, is_dark: bool, width: int = 300) ->
         f'  <text x="{lh_x:.1f}" y="{lh_y:.1f}" text-anchor="middle"'
         f' font-family="Inter,sans-serif" font-size="{fs_label}" font-weight="700" fill="{text_color}">HIGH</text>\n'
         f'  <text x="{cx}" y="{cy + int(44*scale)}" text-anchor="middle"'
-        f' font-family="Inter,sans-serif" font-size="{fs_score}" font-weight="700" fill="{sc_col}">{int(score)}</text>\n'
+        f' font-family="Inter,sans-serif" font-size="{fs_score}" font-weight="700" fill="{sc_col}">{score:.0f}</text>\n'
         f'  <text x="{cx}" y="{cy + int(62*scale)}" text-anchor="middle"'
         f' font-family="Inter,sans-serif" font-size="{fs_sub}" fill="{subtext_color}">OUT OF 100</text>\n'
         '  </g>'
