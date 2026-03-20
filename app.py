@@ -18,16 +18,17 @@ from pathlib import Path
 # --- Monkey-patch aioice to prevent event loop crash on Python 3.11+ ---
 try:
     import aioice.ice
-    _original_send_stun = aioice.ice.Connection.send_stun
+    if hasattr(aioice.ice.Connection, "send_stun"):
+        _original_send_stun = aioice.ice.Connection.send_stun
 
-    def _safe_send_stun(self, message, addr):
-        try:
-            _original_send_stun(self, message, addr)
-        except Exception:
-            pass
+        def _safe_send_stun(self, message, addr):
+            try:
+                _original_send_stun(self, message, addr)
+            except Exception:
+                pass
 
-    aioice.ice.Connection.send_stun = _safe_send_stun
-except ImportError:
+        aioice.ice.Connection.send_stun = _safe_send_stun
+except Exception:
     pass
 # -----------------------------------------------------------------------
 
