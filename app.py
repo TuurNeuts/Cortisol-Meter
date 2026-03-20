@@ -335,57 +335,19 @@ with col_cam:
     # ── Snapshot display ──────────────────────────────────────────────────────
     if st.session_state.snapshot is not None:
         st.markdown("---")
-        st.markdown('<div class="section-title">📸 Snapshot Analysis</div>', unsafe_allow_html=True)
+        st.markdown('<div class="section-title">📸 Captured Snapshot</div>', unsafe_allow_html=True)
+        st.image(st.session_state.snapshot, use_container_width=True)
 
-        sa = st.session_state.snap_analysis
-        if sa:
-            level = sa["cortisol_level"]
-            bc    = badge_class(level)
-            score = sa["cortisol_score"]
-            conf  = sa["confidence"]
-
-            snap_c1, snap_c2 = st.columns([3, 2])
-            with snap_c1:
-                st.image(st.session_state.snapshot, use_container_width=True)
-
-                pil_img = Image.fromarray(st.session_state.snapshot)
-                buf = BytesIO()
-                pil_img.save(buf, format="PNG")
-                st.download_button(
-                    "⬇ Download Snapshot",
-                    data=buf.getvalue(),
-                    file_name="cortisol_snapshot.png",
-                    mime="image/png",
-                    use_container_width=True,
-                )
-            with snap_c2:
-                import time
-                st.markdown(
-                    f'<div id="gauge-snap-{time.time()}" class="card" style="padding:12px 8px;">'
-                    f'{get_gauge_html(score, level, is_dark, width=260)}'
-                    f'<div style="text-align:center;margin-top:6px;">'
-                    f'<span class="badge {bc}">{level} Cortisol</span>'
-                    f'</div></div>',
-                    unsafe_allow_html=True
-                )
-
-                m1, m2 = st.columns(2)
-                with m1:
-                    st.markdown(
-                        f'<div class="metric-box"><div class="metric-label">Score</div>'
-                        f'<div class="metric-value">{score:.0f}<span style="font-size:0.7rem;color:#5a8ab0;">/100</span></div></div>',
-                        unsafe_allow_html=True
-                    )
-                with m2:
-                    st.markdown(
-                        f'<div class="metric-box"><div class="metric-label">Confidence</div>'
-                        f'<div class="metric-value">{conf:.0f}<span style="font-size:0.7rem;color:#5a8ab0;">%</span></div></div>',
-                        unsafe_allow_html=True
-                    )
-
-
-        else:
-            st.info("No face detected in snapshot.")
+        pil_img = Image.fromarray(st.session_state.snapshot)
+        buf = BytesIO()
+        pil_img.save(buf, format="PNG")
+        st.download_button(
+            "⬇ Download Snapshot",
+            data=buf.getvalue(),
+            file_name="cortisol_snapshot.png",
+            mime="image/png",
+            use_container_width=True,
+        )
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -393,23 +355,10 @@ with col_cam:
 # ─────────────────────────────────────────────────────────────────────────────
 
 with col_panel:
-    # Pull the latest result from the WebRTC processor (thread-safe)
-    if ctx.video_processor:
-        live = ctx.video_processor.latest_result
-        # Freeze the frame update if the user just clicked the AI button!
-        # This prevents the score from changing while the button is processing.
-        is_fetching_ai = st.session_state.get("get_ai_tips_univ", False)
-        
-        if live and not is_fetching_ai:
-            st.session_state.last_analysis = live
-            st.session_state.history.append(live["cortisol_score"])
-            if len(st.session_state.history) > 60:
-                st.session_state.history.pop(0)
+    analysis = st.session_state.snap_analysis
 
-    analysis = st.session_state.last_analysis
-
-    # ── Cortisol Gauge ────────────────────────────────────────────────────────
-    st.markdown('<div class="section-title">Cortisol Level</div>', unsafe_allow_html=True)
+    # ── Cortisol Dashboard ────────────────────────────────────────────────────
+    st.markdown('<div class="section-title">Cortisol Dashboard</div>', unsafe_allow_html=True)
 
     if analysis:
         level  = analysis["cortisol_level"]
@@ -467,9 +416,9 @@ with col_panel:
     else:
         st.markdown("""
 <div class="card" style="text-align:center; padding:32px 20px;">
-  <div style="font-size:2.5rem; margin-bottom:10px;">🔍</div>
+  <div style="font-size:2.5rem; margin-bottom:10px;">📸</div>
   <div style="color:#4a6a88; font-size:0.88rem;">
-    Start the camera and<br>position your face in the frame<br>to see your cortisol estimate.
+    Start the camera and click <b>Snapshot</b><br>to lock in your static facial analysis.
   </div>
 </div>
 """, unsafe_allow_html=True)
