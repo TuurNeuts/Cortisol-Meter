@@ -484,12 +484,12 @@ with col_panel:
         components.html(breathing_animation_html(phase_seconds=4), height=240)
         st.markdown('</div>', unsafe_allow_html=True)
 
-        if st.session_state.get("getting_ai", False):
+        st.markdown('<div class="section-title">💡 Stress-Reduction Tips</div>', unsafe_allow_html=True)
+        
+        if st.button("✨ Get Personalised AI Tips", key="refresh_high"):
             with st.spinner("🤖 AI is reading your facial tension..."):
                 st.session_state.tips = get_ai_tips(analysis, 4)
-            st.session_state.getting_ai = False
 
-        st.markdown('<div class="section-title">💡 Stress-Reduction Tips</div>', unsafe_allow_html=True)
         tips = st.session_state.tips
         tips_html = ""
         for icon, title, desc in tips:
@@ -500,10 +500,6 @@ with col_panel:
                 f'<div class="tip-desc">{desc}</div></div></div>'
             )
         st.markdown(tips_html, unsafe_allow_html=True)
-
-        if st.button("✨ Get Personalised AI Tips", key="refresh_high"):
-            st.session_state.getting_ai = True
-            st.rerun()
 
     elif analysis and analysis["cortisol_level"] == "Moderate":
         st.markdown("<br>", unsafe_allow_html=True)
@@ -518,10 +514,9 @@ with col_panel:
         components.html(breathing_animation_html(phase_seconds=4), height=240)
         st.markdown('</div>', unsafe_allow_html=True)
 
-        if st.session_state.get("getting_ai", False):
+        if st.button("✨ Get Personalised AI Tips", key="refresh_moderate"):
             with st.spinner("🤖 AI is reading your facial tension..."):
                 st.session_state.tips = get_ai_tips(analysis, 4)
-            st.session_state.getting_ai = False
 
         tips = st.session_state.tips
         tips_html = ""
@@ -533,10 +528,6 @@ with col_panel:
                 f'<div class="tip-desc">{desc}</div></div></div>'
             )
         st.markdown(tips_html, unsafe_allow_html=True)
-
-        if st.button("✨ Get Personalised AI Tips", key="refresh_moderate"):
-            st.session_state.getting_ai = True
-            st.rerun()
 
     elif analysis and analysis["cortisol_level"] == "Low":
         st.markdown("<br>", unsafe_allow_html=True)
