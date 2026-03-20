@@ -29,6 +29,7 @@ import av
 from streamlit_webrtc import webrtc_streamer, VideoProcessorBase, WebRtcMode
 
 from utils.analysis import analyse_face, get_tips
+from utils.ai_tips import get_ai_tips
 from utils.breathing import breathing_animation_html
 from utils.theme import get_theme_css, get_gauge_html
 
@@ -71,7 +72,13 @@ st.set_page_config(
 )
 
 # Theme Toggle
-is_dark = st.sidebar.toggle("🌙 Dark Mode", value=True)
+if "is_dark" not in st.session_state:
+    st.session_state.is_dark = True
+
+def toggle_theme():
+    st.session_state.is_dark = not st.session_state.is_dark
+
+is_dark = st.session_state.is_dark
 
 # ─────────────────────────────────────────────────────────────────────────────
 # CSS — dynamic light/dark modern design
@@ -228,6 +235,7 @@ def init_state():
         "show_overlay":  True,
         "tips":          get_tips(4),
         "history":       [],
+        "getting_ai":    False,
     }
     for k, v in defaults.items():
         if k not in st.session_state:
@@ -241,17 +249,24 @@ init_state()
 # ─────────────────────────────────────────────────────────────────────────────
 
 # ── Header ──
-st.markdown("""
-<div style="text-align:center; padding: 10px 0 4px;">
-  <div style="font-size:2.4rem; margin-bottom:4px;">🧠</div>
-  <h1 style="font-size:1.8rem; font-weight:700; color:#c8e6ff; margin:0; letter-spacing:-0.5px;">
-    Cortisol Meter
-  </h1>
-  <p style="color:#5a8ab0; font-size:0.88rem; margin:6px 0 0; letter-spacing:0.3px;">
-    Real-time stress estimation from facial analysis · Powered by MediaPipe
-  </p>
-</div>
-""", unsafe_allow_html=True)
+h_col1, h_col2, h_col3 = st.columns([1, 6, 1])
+
+with h_col3:
+    st.markdown("<div style='margin-top: 30px;'></div>", unsafe_allow_html=True)
+    st.button("☀️ Light" if is_dark else "🌙 Dark", on_click=toggle_theme, use_container_width=True)
+
+with h_col2:
+    st.markdown("""
+    <div style="text-align:center; padding: 10px 0 4px;">
+      <div style="font-size:2.4rem; margin-bottom:4px;">🧠</div>
+      <h1 style="font-size:1.8rem; font-weight:700; color:var(--text-main); margin:0; letter-spacing:-0.5px;">
+        Cortisol Meter
+      </h1>
+      <p style="color:var(--text-muted); font-size:0.88rem; margin:6px 0 0; letter-spacing:0.3px;">
+        Real-time stress estimation from facial analysis · Powered by MediaPipe
+      </p>
+    </div>
+    """, unsafe_allow_html=True)
 
 st.markdown("<hr style='border:none;border-top:1px solid rgba(255,255,255,0.07);margin:14px 0 20px;'>",
             unsafe_allow_html=True)
@@ -328,8 +343,9 @@ with col_cam:
                     use_container_width=True,
                 )
             with snap_c2:
+                import time
                 st.markdown(
-                    f'<div class="card" style="padding:12px 8px;">'
+                    f'<div id="gauge-snap-{time.time()}" class="card" style="padding:12px 8px;">'
                     f'{get_gauge_html(score, level, is_dark, width=260)}'
                     f'<div style="text-align:center;margin-top:6px;">'
                     f'<span class="badge {bc}">{level} Cortisol</span>'
@@ -376,13 +392,24 @@ with col_panel:
     st.markdown('<div class="section-title">Cortisol Level</div>', unsafe_allow_html=True)
 
     if analysis:
-        level  = analysis["cortisol_level"]
+        # Smooth the level classification to avoid rapid flickering when blinking
+        recent_scores = st.session_state.history[-20:]
+        avg_score = sum(recent_scores) / len(recent_scores) if recent_scores else analysis["cortisol_score"]
+        
+        if avg_score < 30:
+            level = "Low"
+        elif avg_score < 55:
+            level = "Moderate"
+        else:
+            level = "High"
+            
         score  = analysis["cortisol_score"]
         conf   = analysis["confidence"]
         bc     = badge_class(level)
 
+        import time
         st.markdown(
-            f'<div class="card">'
+            f'<div id="gauge-live-{time.time()}" class="card">'
             f'{get_gauge_html(score, level, is_dark)}'
             f'<div style="text-align:center; margin-top:4px;">'
             f'<span class="badge {bc}">{level} Cortisol</span>'
@@ -451,6 +478,11 @@ with col_panel:
         components.html(breathing_animation_html(phase_seconds=4), height=240)
         st.markdown('</div>', unsafe_allow_html=True)
 
+        if st.session_state.get("getting_ai", False):
+            with st.spinner("🤖 AI is reading your facial tension..."):
+                st.session_state.tips = get_ai_tips(analysis, 4)
+            st.session_state.getting_ai = False
+
         st.markdown('<div class="section-title">💡 Stress-Reduction Tips</div>', unsafe_allow_html=True)
         tips = st.session_state.tips
         tips_html = ""
@@ -463,8 +495,8 @@ with col_panel:
             )
         st.markdown(tips_html, unsafe_allow_html=True)
 
-        if st.button("🔄 Refresh Tips", key="refresh_high"):
-            st.session_state.tips = get_tips(4)
+        if st.button("✨ Get Personalised AI Tips", key="refresh_high"):
+            st.session_state.getting_ai = True
             st.rerun()
 
     elif analysis and analysis["cortisol_level"] == "Moderate":
@@ -480,6 +512,11 @@ with col_panel:
         components.html(breathing_animation_html(phase_seconds=4), height=240)
         st.markdown('</div>', unsafe_allow_html=True)
 
+        if st.session_state.get("getting_ai", False):
+            with st.spinner("🤖 AI is reading your facial tension..."):
+                st.session_state.tips = get_ai_tips(analysis, 4)
+            st.session_state.getting_ai = False
+
         tips = st.session_state.tips
         tips_html = ""
         for icon, title, desc in tips:
@@ -491,8 +528,8 @@ with col_panel:
             )
         st.markdown(tips_html, unsafe_allow_html=True)
 
-        if st.button("🔄 Refresh Tips", key="refresh_moderate"):
-            st.session_state.tips = get_tips(4)
+        if st.button("✨ Get Personalised AI Tips", key="refresh_moderate"):
+            st.session_state.getting_ai = True
             st.rerun()
 
     elif analysis and analysis["cortisol_level"] == "Low":
