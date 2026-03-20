@@ -30,6 +30,7 @@ from streamlit_webrtc import webrtc_streamer, VideoProcessorBase, WebRtcMode
 
 from utils.analysis import analyse_face, get_tips
 from utils.breathing import breathing_animation_html
+from utils.theme import get_theme_css, get_gauge_html
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Network & ICE Configuration
@@ -69,221 +70,14 @@ st.set_page_config(
     initial_sidebar_state="collapsed",
 )
 
+# Theme Toggle
+is_dark = st.sidebar.toggle("🌙 Dark Mode", value=True)
+
 # ─────────────────────────────────────────────────────────────────────────────
-# CSS — dark, modern, calming design
+# CSS — dynamic light/dark modern design
 # ─────────────────────────────────────────────────────────────────────────────
 
-st.markdown("""
-<style>
-/* ── Google Font ── */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-
-/* ── Base ── */
-html, body, [class*="css"] {
-    font-family: 'Inter', sans-serif;
-    box-sizing: border-box;
-}
-*, *::before, *::after { box-sizing: inherit; }
-.stApp {
-    background: linear-gradient(135deg, #0d1117 0%, #0d1b2a 50%, #0d2137 100%);
-    color: #e0eeff;
-    min-height: 100vh;
-}
-
-/* ── Hide default Streamlit chrome ── */
-#MainMenu, footer, header { visibility: hidden; }
-
-/* ── Main container responsive padding ── */
-.block-container {
-    padding-top: 1.5rem !important;
-    padding-bottom: 2rem !important;
-    padding-left: 1.5rem !important;
-    padding-right: 1.5rem !important;
-    max-width: 100% !important;
-}
-
-/* ── Streamlit columns: allow wrapping on small screens ── */
-[data-testid="stHorizontalBlock"] {
-    flex-wrap: wrap;
-    gap: 1rem;
-    align-items: flex-start;
-}
-[data-testid="stHorizontalBlock"] > [data-testid="column"] {
-    min-width: 280px;
-    flex: 1 1 300px;
-}
-
-/* ── Ensure images never overflow their column ── */
-[data-testid="stImage"] img,
-.stImage img {
-    max-width: 100% !important;
-    height: auto !important;
-    border-radius: 12px;
-}
-
-/* ── WebRTC video element ── */
-video {
-    border-radius: 12px;
-    max-width: 100% !important;
-}
-
-/* ── Card panels ── */
-.card {
-    background: rgba(255,255,255,0.04);
-    border: 1px solid rgba(100,160,255,0.15);
-    border-radius: 16px;
-    padding: 20px 24px;
-    margin-bottom: 16px;
-    backdrop-filter: blur(8px);
-    width: 100%;
-}
-.card-high {
-    background: rgba(255,80,80,0.07);
-    border: 1px solid rgba(255,100,100,0.30);
-    border-radius: 16px;
-    padding: 20px 24px;
-    margin-bottom: 16px;
-    width: 100%;
-}
-
-/* ── Level badge ── */
-.badge {
-    display: inline-block;
-    padding: 6px 18px;
-    margin: 15px auto;
-    border-radius: 40px;
-    font-size: 0.85rem;
-    font-weight: 600;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    white-space: nowrap;
-}
-.badge-low      { background: rgba(60,200,120,0.2); color:#4ade80; border:1px solid rgba(60,200,120,0.4); }
-.badge-moderate { background: rgba(250,190,50,0.2); color:#fbbf24; border:1px solid rgba(250,190,50,0.4); }
-.badge-high     { background: rgba(255,80,80,0.2);  color:#f87171; border:1px solid rgba(255,80,80,0.4); }
-
-/* ── Score gauge container — fills available width ── */
-.gauge-wrap {
-    text-align: center;
-    padding: 8px 0;
-    width: 100%;
-    overflow: hidden;
-}
-.gauge-wrap svg {
-    max-width: 100%;
-    height: auto;
-}
-
-/* ── Tip card ── */
-.tip-card {
-    background: rgba(60,120,200,0.12);
-    border: 1px solid rgba(80,150,255,0.2);
-    border-radius: 12px;
-    padding: 12px 16px;
-    margin-bottom: 10px;
-    display: flex;
-    gap: 12px;
-    align-items: flex-start;
-    width: 100%;
-}
-.tip-icon { font-size: 1.4rem; line-height:1; margin-top:2px; flex-shrink: 0; }
-.tip-title { font-weight:600; font-size:0.9rem; color:#a8d8ff; margin-bottom:4px; }
-.tip-desc  { font-size:0.82rem; color:#8eb8d8; line-height:1.45; }
-
-/* ── Section headings ── */
-.section-title {
-    font-size: 0.75rem;
-    font-weight: 600;
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
-    color: #5a8ab0;
-    margin-bottom: 10px;
-}
-
-/* ── Disclaimer ── */
-.disclaimer {
-    font-size: 0.72rem;
-    color: #4a6a88;
-    border-top: 1px solid rgba(255,255,255,0.06);
-    padding-top: 12px;
-    margin-top: 8px;
-    line-height: 1.6;
-    width: 100%;
-}
-
-/* ── Metric boxes ── */
-.metric-box {
-    background: rgba(255,255,255,0.03);
-    border: 1px solid rgba(100,160,255,0.1);
-    border-radius: 10px;
-    padding: 10px 14px;
-    text-align: center;
-    width: 100%;
-}
-.metric-label { font-size:0.7rem; color:#5a8ab0; text-transform:uppercase; letter-spacing:0.8px; }
-.metric-value { font-size:1.1rem; font-weight:600; color:#c0deff; margin-top:2px; }
-
-/* ── Streamlit button override ── */
-.stButton > button {
-    background: linear-gradient(135deg, #1e5fa8, #2a7fd4);
-    color: white;
-    border: none;
-    border-radius: 10px;
-    padding: 10px 22px;
-    font-family: 'Inter', sans-serif;
-    font-weight: 500;
-    transition: all 0.2s;
-    width: 100%;
-    white-space: nowrap;
-}
-.stButton > button:hover {
-    background: linear-gradient(135deg, #2a7fd4, #3a9fe4);
-    transform: translateY(-1px);
-    box-shadow: 0 4px 15px rgba(42,127,212,0.35);
-}
-
-/* ── Progress bar colour ── */
-.stProgress > div > div > div { border-radius: 8px; }
-
-/* ── Responsive breakpoints ── */
-
-/* Tablet: stack columns and reduce font sizes slightly */
-@media (max-width: 1050px) {
-    .block-container {
-        padding-left: 1rem !important;
-        padding-right: 1rem !important;
-    }
-    [data-testid="stHorizontalBlock"] > [data-testid="column"] {
-        min-width: 100% !important;
-        flex: 1 1 100% !important;
-    }
-    .section-title { font-size: 0.7rem; }
-    h1 { font-size: 1.5rem !important; }
-}
-
-/* Mobile: tighten padding, reduce card padding */
-@media (max-width: 600px) {
-    .block-container {
-        padding-left: 0.5rem !important;
-        padding-right: 0.5rem !important;
-        padding-top: 1rem !important;
-    }
-    .card, .card-high {
-        padding: 14px 16px;
-        border-radius: 12px;
-    }
-    .tip-card {
-        padding: 10px 12px;
-        gap: 8px;
-    }
-    .tip-title { font-size: 0.85rem; }
-    .tip-desc  { font-size: 0.78rem; }
-    .metric-value { font-size: 1rem; }
-    .badge { font-size: 0.78rem; padding: 5px 14px; }
-    h1 { font-size: 1.3rem !important; }
-}
-</style>
-""", unsafe_allow_html=True)
+st.markdown(get_theme_css(is_dark), unsafe_allow_html=True)
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -351,105 +145,6 @@ def cortisol_colour(level: str) -> tuple:
 def badge_class(level: str) -> str:
     return {"Low": "badge-low", "Moderate": "badge-moderate", "High": "badge-high"}[level]
 
-
-def gauge_html(score: float, level: str, width: int = 300) -> str:
-    """
-    SVG speedometer gauge: five colour bands (dark-green → lime → yellow
-    → orange-red → dark-red) with a pivoting needle.
-    """
-    import math
-
-    scale  = width / 300
-    cx     = int(150 * scale)
-    cy     = int(152 * scale)
-    r_out  = int(120 * scale)
-    r_in   = int(66  * scale)
-    h_svg  = int(215 * scale)
-
-    bands = [
-        (180, 144, "#388E3C"),
-        (144, 108, "#8BC34A"),
-        (108,  72, "#FDD835"),
-        ( 72,  36, "#F4511E"),
-        ( 36,   0, "#B71C1C"),
-    ]
-
-    def pt(deg, r):
-        a = math.radians(deg)
-        return cx + r * math.cos(a), cy - r * math.sin(a)
-
-    segs = ""
-    for a1, a2, col in bands:
-        ox1, oy1 = pt(a1, r_out)
-        ox2, oy2 = pt(a2, r_out)
-        ix2, iy2 = pt(a2, r_in)
-        ix1, iy1 = pt(a1, r_in)
-        d = (f"M{ox1:.2f},{oy1:.2f} "
-             f"A{r_out},{r_out} 0 0,0 {ox2:.2f},{oy2:.2f} "
-             f"L{ix2:.2f},{iy2:.2f} "
-             f"A{r_in},{r_in} 0 0,1 {ix1:.2f},{iy1:.2f}Z")
-        segs += f'  <path d="{d}" fill="{col}"/>\n'
-
-    divs = ""
-    for a in [144, 108, 72, 36]:
-        x1, y1 = pt(a, r_in  - 2)
-        x2, y2 = pt(a, r_out + 2)
-        sw = max(2, int(3 * scale))
-        divs += (f'  <line x1="{x1:.1f}" y1="{y1:.1f}" '
-                 f'x2="{x2:.1f}" y2="{y2:.1f}" '
-                 f'stroke="#0d1b2a" stroke-width="{sw}"/>\n')
-
-    na  = math.radians(180.0 - score * 1.8)
-    nl  = r_in - int(8 * scale)
-    nx  = cx + nl * math.cos(na)
-    ny  = cy - nl * math.sin(na)
-    nw  = max(2, int(3.5 * scale))
-
-    sc_col = {"Low": "#66BB6A", "Moderate": "#FDD835", "High": "#EF5350"}.get(level, "#fff")
-
-    ll_x, ll_y = pt(162, r_out + int(16 * scale))
-    ln_x, ln_y = pt(90,  r_out + int(16 * scale))
-    lh_x, lh_y = pt(18,  r_out + int(16 * scale))
-
-    fs_label  = max(9,  int(11 * scale))
-    fs_score  = max(18, int(26 * scale))
-    fs_sub    = max(7,  int(9  * scale))
-    r_hub1    = max(8,  int(12 * scale))
-    r_hub2    = max(3,  int(5  * scale))
-
-    title_y = max(14, int(20 * scale))
-    title_fs = max(10, int(13 * scale))
-
-    vb_w = width
-    vb_h = h_svg + title_y + 4
-    return (
-        '<div class="gauge-wrap">'
-        f'<svg width="100%" height="auto" '
-        f'viewBox="0 0 {vb_w} {vb_h}" preserveAspectRatio="xMidYMid meet" style="overflow:visible; display:block;">'
-        f'  <text x="{cx}" y="{title_y}" text-anchor="middle"'
-        f' font-family="Inter,sans-serif" font-size="{title_fs}" font-weight="700"'
-        f' letter-spacing="2" fill="#c0deff">CORTISOL LEVEL</text>\n'
-        f'  <g transform="translate(0,{title_y + 4})">'
-        f'\n{segs}{divs}'
-        f'  <line x1="{cx}" y1="{cy}" x2="{nx:.2f}" y2="{ny:.2f}"'
-        f' stroke="#1a1a2e" stroke-width="{nw + 2}" stroke-linecap="round"/>'
-        f'  <line x1="{cx}" y1="{cy}" x2="{nx:.2f}" y2="{ny:.2f}"'
-        f' stroke="#e8f4ff" stroke-width="{nw}" stroke-linecap="round"/>\n'
-        f'  <circle cx="{cx}" cy="{cy}" r="{r_hub1}" fill="#0d1b2a" stroke="#a0c4e0" stroke-width="1.5"/>\n'
-        f'  <circle cx="{cx}" cy="{cy}" r="{r_hub2}" fill="#e8f4ff"/>\n'
-        f'  <text x="{ll_x:.1f}" y="{ll_y:.1f}" text-anchor="middle"'
-        f' font-family="Inter,sans-serif" font-size="{fs_label}" font-weight="700" fill="#c0deff">LOW</text>\n'
-        f'  <text x="{ln_x:.1f}" y="{ln_y:.1f}" text-anchor="middle"'
-        f' font-family="Inter,sans-serif" font-size="{fs_label}" font-weight="700" fill="#c0deff">NORMAL</text>\n'
-        f'  <text x="{lh_x:.1f}" y="{lh_y:.1f}" text-anchor="middle"'
-        f' font-family="Inter,sans-serif" font-size="{fs_label}" font-weight="700" fill="#c0deff">HIGH</text>\n'
-        f'  <text x="{cx}" y="{cy + int(44*scale)}" text-anchor="middle"'
-        f' font-family="Inter,sans-serif" font-size="{fs_score}" font-weight="700" fill="{sc_col}">{int(score)}</text>\n'
-        f'  <text x="{cx}" y="{cy + int(62*scale)}" text-anchor="middle"'
-        f' font-family="Inter,sans-serif" font-size="{fs_sub}" fill="#5a8ab0">OUT OF 100</text>\n'
-        '  </g>'
-        '</svg></div>'
-    )
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -635,7 +330,7 @@ with col_cam:
             with snap_c2:
                 st.markdown(
                     f'<div class="card" style="padding:12px 8px;">'
-                    f'{gauge_html(score, level, width=260)}'
+                    f'{get_gauge_html(score, level, is_dark, width=260)}'
                     f'<div style="text-align:center;margin-top:6px;">'
                     f'<span class="badge {bc}">{level} Cortisol</span>'
                     f'</div></div>',
@@ -688,7 +383,7 @@ with col_panel:
 
         st.markdown(
             f'<div class="card">'
-            f'{gauge_html(score, level)}'
+            f'{get_gauge_html(score, level, is_dark)}'
             f'<div style="text-align:center; margin-top:4px;">'
             f'<span class="badge {bc}">{level} Cortisol</span>'
             f'</div>'
