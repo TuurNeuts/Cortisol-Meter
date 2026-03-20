@@ -15,6 +15,22 @@ import random
 from io import BytesIO
 from pathlib import Path
 
+# --- Monkey-patch aioice to prevent event loop crash on Python 3.11+ ---
+try:
+    import aioice.ice
+    _original_send_stun = aioice.ice.Connection.send_stun
+
+    def _safe_send_stun(self, message, addr):
+        try:
+            _original_send_stun(self, message, addr)
+        except Exception:
+            pass
+
+    aioice.ice.Connection.send_stun = _safe_send_stun
+except ImportError:
+    pass
+# -----------------------------------------------------------------------
+
 import urllib.request
 import cv2
 import mediapipe as mp
