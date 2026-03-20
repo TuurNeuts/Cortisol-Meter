@@ -396,7 +396,11 @@ with col_panel:
     # Pull the latest result from the WebRTC processor (thread-safe)
     if ctx.video_processor:
         live = ctx.video_processor.latest_result
-        if live:
+        # Freeze the frame update if the user just clicked the AI button!
+        # This prevents the score from changing while the button is processing.
+        is_fetching_ai = st.session_state.get("get_ai_tips_univ", False)
+        
+        if live and not is_fetching_ai:
             st.session_state.last_analysis = live
             st.session_state.history.append(live["cortisol_score"])
             if len(st.session_state.history) > 60:
