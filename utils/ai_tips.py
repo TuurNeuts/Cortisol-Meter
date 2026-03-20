@@ -1,6 +1,11 @@
 import os
 import streamlit as st
-from google import genai
+import warnings
+
+# Suppress the deprecation warning to keep the Streamlit console clean
+warnings.filterwarnings("ignore", category=FutureWarning, module="google.generativeai")
+import google.generativeai as genai
+
 from utils.analysis import get_tips as get_fallback_tips
 
 def get_ai_tips(analysis: dict, n: int = 4):
@@ -19,7 +24,10 @@ def get_ai_tips(analysis: dict, n: int = 4):
     if not api_key:
         return [("🔑", "API Key Missing", "Please add GEMINI_API_KEY to your Streamlit Secrets.")] + get_fallback_tips(n - 1)
 
-    client = genai.Client(api_key=api_key)
+    genai.configure(api_key=api_key)
+    
+    # Optional: We use gemini-1.5-flash as it is fast and cheap for text.
+    model = genai.GenerativeModel('gemini-1.5-flash')
     
     prompt = f"""
     The user is currently exhibiting a {analysis['cortisol_level']} stress level, 
@@ -42,11 +50,7 @@ def get_ai_tips(analysis: dict, n: int = 4):
     """
 
     try:
-        response = client.models.generate_content(
-            model='gemini-1.5-flash',
-            contents=prompt,
-            config=genai.types.GenerateContentConfig(temperature=0.7)
-        )
+        response = model.generate_content(prompt, generation_config={"temperature": 0.7})
         text = response.text.strip()
         
         tips = []
