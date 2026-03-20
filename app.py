@@ -14,6 +14,7 @@ import threading
 import random
 from io import BytesIO
 from pathlib import Path
+import os
 
 import urllib.request
 import cv2
@@ -29,6 +30,33 @@ from streamlit_webrtc import webrtc_streamer, VideoProcessorBase, WebRtcMode
 
 from utils.analysis import analyse_face, get_tips
 from utils.breathing import breathing_animation_html
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Network & ICE Configuration
+# ─────────────────────────────────────────────────────────────────────────────
+
+@st.cache_data(ttl=3600)  # cache for 1 hour so we don't spam Twilio's API
+def get_ice_servers():
+    """Use Twilio's TURN server to fall back in case STUN is blocked by firewalls."""
+    try:
+        account_sid = os.environ.get("TWILIO_ACCOUNT_SID", st.secrets.get("TWILIO_ACCOUNT_SID"))
+        auth_token = os.environ.get("TWILIO_AUTH_TOKEN", st.secrets.get("TWILIO_AUTH_TOKEN"))
+    except Exception:
+        account_sid = None
+        auth_token = None
+
+    if account_sid and auth_token:
+        try:
+            from twilio.rest import Client
+            client = Client(account_sid, auth_token)
+            token = client.tokens.create()
+            return token.ice_servers
+        except Exception as e:
+            print(f"Failed to get Twilio ICE servers: {e}")
+            
+    # Default fallback to Google STUN
+    return [{"urls": ["stun:stun.l.google.com:19302"]}]
+
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Page configuration
@@ -555,7 +583,7 @@ with col_cam:
         media_stream_constraints={"video": True, "audio": False},
         async_processing=True,
         rtc_configuration={
-            "iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]
+            "iceServers": get_ice_servers()
         },
     )
 
