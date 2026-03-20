@@ -129,7 +129,7 @@ video {
     letter-spacing: 1px;
     text-transform: uppercase;
     white-space: nowrap;
-}
+}stre
 .badge-low      { background: rgba(60,200,120,0.2); color:#4ade80; border:1px solid rgba(60,200,120,0.4); }
 .badge-moderate { background: rgba(250,190,50,0.2); color:#fbbf24; border:1px solid rgba(250,190,50,0.4); }
 .badge-high     { background: rgba(255,80,80,0.2);  color:#f87171; border:1px solid rgba(255,80,80,0.4); }
@@ -555,7 +555,15 @@ with col_cam:
         media_stream_constraints={"video": True, "audio": False},
         async_processing=True,
         rtc_configuration={
-            "iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]
+            "iceServers": [
+                {"urls": ["stun:stun.l.google.com:19302"]},
+                {"urls": ["stun:stun1.l.google.com:19302"]},
+                {"urls": ["stun:stun2.l.google.com:19302"]},
+                {"urls": ["stun:stun.stunprotocol.org:3478"]},
+                {"urls": ["stun:stun.qq.com:3478"]},
+                {"urls": ["stun:stun.cloudflare.com:3478"]},
+                {"urls": ["stun:stun.miwifi.com:3478"]}
+            ]
         },
     )
 
