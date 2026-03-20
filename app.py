@@ -12,6 +12,7 @@ Run with:
 
 import threading
 import random
+import collections
 from io import BytesIO
 from pathlib import Path
 import os
@@ -173,6 +174,8 @@ class VideoTransformer(VideoProcessorBase):
         self.show_overlay: bool = True
         # Load the landmarker once per processor instance
         self._landmarker = load_face_landmarker()
+        # Smooth the rapidly changing scores over the last 15 frames (~0.5s)
+        self._score_history = collections.deque(maxlen=15)
 
     def recv(self, frame: av.VideoFrame) -> av.VideoFrame:
         # Convert incoming frame to BGR numpy array
@@ -188,10 +191,23 @@ class VideoTransformer(VideoProcessorBase):
             h, w = img.shape[:2]
             analysis = analyse_face(landmarks, w, h)
 
+            # Smooth the raw score internally per-frame
+            self._score_history.append(analysis["cortisol_score"])
+            smoothed_score = sum(self._score_history) / len(self._score_history)
+            
+            # Re-apply the smoothed score and recalculate the stable level
+            analysis["cortisol_score"] = float(smoothed_score)
+            if smoothed_score < 30:
+                level = "Low"
+            elif smoothed_score < 55:
+                level = "Moderate"
+            else:
+                level = "High"
+            analysis["cortisol_level"] = level
+
             if self.show_overlay:
                 img = draw_landmarks(img, landmarks)
 
-            level  = analysis["cortisol_level"]
             colour = cortisol_colour(level)
             label  = f"Cortisol: {level}  ({analysis['cortisol_score']:.0f}/100)"
             cv2.rectangle(img, (8, 8), (300, 36), (0, 0, 0), -1)
@@ -392,17 +408,7 @@ with col_panel:
     st.markdown('<div class="section-title">Cortisol Level</div>', unsafe_allow_html=True)
 
     if analysis:
-        # Smooth the level classification to avoid rapid flickering when blinking
-        recent_scores = st.session_state.history[-20:]
-        avg_score = sum(recent_scores) / len(recent_scores) if recent_scores else analysis["cortisol_score"]
-        
-        if avg_score < 30:
-            level = "Low"
-        elif avg_score < 55:
-            level = "Moderate"
-        else:
-            level = "High"
-            
+        level  = analysis["cortisol_level"]
         score  = analysis["cortisol_score"]
         conf   = analysis["confidence"]
         bc     = badge_class(level)
